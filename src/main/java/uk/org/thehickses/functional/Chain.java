@@ -47,22 +47,37 @@ public class Chain
         return func::applyAsInt;
     }
 
-    public static <T> ConsumerChain<T> of(Consumer<T> func)
+    private static <T> ConsumerChain<T> of(Consumer<T> func)
     {
         return func::accept;
     }
 
-    public static IntConsumerChain of(IntConsumer func)
+    private static IntConsumerChain of(IntConsumer func)
     {
         return func::accept;
     }
 
-    public static RunnableChain of(Runnable func)
+    private static RunnableChain of(Runnable func)
     {
         return func::run;
     }
 
-    static <T> Supplier<T> nullTolerant(Supplier<T> func, T defaultIfNull)
+    public static Runnable nullTolerant(Runnable func)
+    {
+        return of(func).nullTolerant();
+    }
+
+    public static <T> Consumer<T> nullTolerant(Consumer<T> func)
+    {
+        return of(func).nullTolerant();
+    }
+
+    public static IntConsumer nullTolerant(IntConsumer func)
+    {
+        return of(func).nullTolerant();
+    }
+
+    private static <T> Supplier<T> nullTolerant(Supplier<T> func, T defaultIfNull)
     {
         return () ->
             {
@@ -77,7 +92,7 @@ public class Chain
             };
     }
 
-    static <T> IntSupplier nullTolerant(IntSupplier func, int defaultIfNull)
+    private static <T> IntSupplier nullTolerant(IntSupplier func, int defaultIfNull)
     {
         return () ->
             {
@@ -277,15 +292,7 @@ public class Chain
     {
         public default Consumer<T> nullTolerant()
         {
-            return arg ->
-                {
-                    try
-                    {
-                        accept(arg);
-                    }
-                    catch (NullPointerException ex)
-                    {}
-                };
+            return arg -> of(() -> accept(arg)).nullTolerant();
         }
     }
 
@@ -293,18 +300,10 @@ public class Chain
     {
         public default IntConsumer nullTolerant()
         {
-            return arg ->
-                {
-                    try
-                    {
-                        accept(arg);
-                    }
-                    catch (NullPointerException ex)
-                    {}
-                };
+            return arg -> of(() -> accept(arg)).nullTolerant();
         }
     }
-    
+
     public static interface RunnableChain extends Runnable
     {
         public default Runnable nullTolerant()
@@ -313,7 +312,8 @@ public class Chain
                 {
                     try
                     {
-                        run();;
+                        run();
+                        ;
                     }
                     catch (NullPointerException ex)
                     {}
